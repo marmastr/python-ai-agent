@@ -15,7 +15,7 @@ def get_file_content(working_directory, file_path):
     if not abs_file_path.startswith(os.path.abspath(working_directory)):
         return f'Error: Cannot read "{file_path}" as it is outside the permitted working directory'
     try:
-        with open(abs_file_path) as f:
+        with open(abs_file_path, "r") as f:
             file_content_string = f.read(MAX_CHARS)
     except Exception as e:
         return f"Error: Reading from file: {e}"

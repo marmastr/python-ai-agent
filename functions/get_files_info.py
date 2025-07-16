@@ -8,11 +8,14 @@ def get_files_info(working_directory, directory=None):
         return f'Error: "{directory}" is not a directory'
     if not dir_path.startswith(os.path.abspath(working_directory)):
         return f'Error: Cannot list "{directory}" as it is outside the permitted working directory'
-    dir_list = list(
-        map(
-            lambda item: f"- {item}: {os.path.getsize(os.path.join(dir_path, item))}, is_dir={os.path.isdir(os.path.join(dir_path, item))}",
-            os.listdir(dir_path),
+    try:
+        dir_list = list(
+            map(
+                lambda item: f"- {item}: {os.path.getsize(os.path.join(dir_path, item))},is_dir={os.path.isdir(os.path.join(dir_path, item))}",
+                os.listdir(dir_path),
+            )
         )
-    )
+    except Exception as e:
+        return f"Error: Listing files: {e}"
     result = "\n".join(dir_list)
     return result
