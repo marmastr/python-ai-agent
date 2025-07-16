@@ -1,19 +1,19 @@
-from functions.get_files_info import get_files_info
+from functions.get_file_content import get_file_content
 
 
 def test():
     cases = [
-        ("calculator", "."),
-        ("calculator", "pkg"),
-        ("calculator", "/bin"),
-        ("calculator", "../"),
+        ("calculator", "main.py"),
+        ("calculator", "pkg/calculator.py"),
+        ("calculator", "/bin/cat"),
+        ("calculator", "pkg/does_not_exist.py"),
     ]
     for tup in cases:
         _, testing_case = tup
         if testing_case == ".":
             testing_case = "current"
         print(f"Result for {testing_case} directory:")
-        print(get_files_info(*tup))
+        print(get_file_content(*tup))
 
 
 if __name__ == "__main__":
