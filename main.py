@@ -6,12 +6,12 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 
+from config import AI_MODEL, SYSTEM_PROMPT
 
 if not load_dotenv():
     print("failed to load .env")
 API_KEY = os.environ.get("GEMINI_API_KEY")
 client = genai.Client(api_key=API_KEY)
-AI_MODEL = "gemini-2.0-flash-001"
 
 parser = argparse.ArgumentParser(
     prog="BOOT.DEV Python AI Agent",
@@ -31,7 +31,11 @@ def main():
     messages = [
         types.Content(role="user", parts=[types.Part(text=args.user_prompt)]),
     ]
-    response = client.models.generate_content(model=AI_MODEL, contents=messages)
+    response = client.models.generate_content(
+        model=AI_MODEL,
+        contents=messages,
+        config=types.GenerateContentConfig(system_instruction=SYSTEM_PROMPT),
+    )
     if args.verbose:
         print(f"User prompt:\n{args.user_prompt}")
         print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
@@ -40,9 +44,6 @@ def main():
         print(response)
     else:
         print(f"Response:\n{response.text}")
-
-
-#    print("Hello from python-ai-agent!")
 
 
 if __name__ == "__main__":
