@@ -14,9 +14,12 @@ def run_python_file(working_directory, file_path, args=[]):
         return f'Error: File "{file_path}" not found.'
     if not abs_file_path.endswith("py"):
         return f'Error: "{file_path}" is not a Python file.'
+    command = ["python", abs_file_path]
+    if args:
+        command.extend(args)
     try:
         completed_process = subprocess.run(
-            ["python", abs_file_path, *args],
+            command,
             cwd=cwd,
             capture_output=True,
             timeout=30,

@@ -7,6 +7,7 @@ from google import genai
 from google.genai import types
 
 from config import AI_MODEL, SYSTEM_PROMPT
+from functions.available_functions import available_functions
 
 if not load_dotenv():
     print("failed to load .env")
@@ -19,7 +20,6 @@ parser = argparse.ArgumentParser(
 )
 parser.add_argument("user_prompt")
 parser.add_argument("-v", "--verbose", action="store_true")
-parser.add_argument("-r", "--raw", action="store_true")
 args = parser.parse_args()
 
 if len(args.user_prompt) <= 0:
@@ -34,14 +34,17 @@ def main():
     response = client.models.generate_content(
         model=AI_MODEL,
         contents=messages,
-        config=types.GenerateContentConfig(system_instruction=SYSTEM_PROMPT),
+        config=types.GenerateContentConfig(
+            tools=[available_functions], system_instruction=SYSTEM_PROMPT
+        ),
     )
     if args.verbose:
         print(f"User prompt:\n{args.user_prompt}")
         print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
         print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
-    if args.raw:
-        print(response)
+    if response.function_calls:
+        for call in response.function_calls:
+            print(f"Calling function: {call.name}({call.args})")
     else:
         print(f"Response:\n{response.text}")
 
