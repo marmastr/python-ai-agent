@@ -8,6 +8,7 @@ from google.genai import types
 
 from config import AI_MODEL, SYSTEM_PROMPT
 from functions.available_functions import available_functions
+from functions.call_function import call_function
 
 if not load_dotenv():
     print("failed to load .env")
@@ -44,7 +45,8 @@ def main():
         print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
     if response.function_calls:
         for call in response.function_calls:
-            print(f"Calling function: {call.name}({call.args})")
+            function_call_result = call_function(call)
+            print(f"-> {function_call_result.parts[0].function_response.response}")
     else:
         print(f"Response:\n{response.text}")
 

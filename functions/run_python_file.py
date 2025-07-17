@@ -5,10 +5,10 @@ import subprocess
 def run_python_file(working_directory, file_path, args=[]):
     try:
         cwd = os.path.abspath(working_directory)
-        abs_file_path = os.path.abspath(os.path.join(cwd, str(file_path)))
+        abs_file_path = os.path.abspath(os.path.join(str(cwd), str(file_path)))
     except Exception as e:
         return f"Error: Geting abs path: {e}"
-    if not abs_file_path.startswith(os.path.abspath(working_directory)):
+    if not abs_file_path.startswith(cwd):
         return f'Error: Cannot execute "{file_path}" as it is outside the permitted working directory'
     if not os.path.exists(abs_file_path):
         return f'Error: File "{file_path}" not found.'
