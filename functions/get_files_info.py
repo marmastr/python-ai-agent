@@ -1,5 +1,4 @@
 import os
-from functions.in_context import in_context
 
 
 def get_files_info(working_directory, directory=None):
