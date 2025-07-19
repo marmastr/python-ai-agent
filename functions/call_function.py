@@ -1,7 +1,26 @@
 from config import WORK_DIR
 import google.genai.types as types
-from functions.available_functions import available_functions
-from functions.run_python_file import run_python_file
+from functions.run_python_file import run_python_file, schema_run_python_file
+from functions.get_files_info import get_files_info, schema_get_files_info
+from functions.get_file_content import get_file_content, schema_get_file_content
+from functions.write_file import write_file, schema_write_file
+
+
+enabled_functions = {
+    "get_files_info": get_files_info,
+    "get_file_content": get_file_content,
+    "run_python_file": run_python_file,
+    "write_file": write_file,
+}
+
+available_functions = types.Tool(
+    function_declarations=[
+        schema_get_files_info,
+        schema_get_file_content,
+        schema_run_python_file,
+        schema_write_file,
+    ]
+)
 
 
 def call_function(function_call_part, verbose=False):
@@ -9,28 +28,21 @@ def call_function(function_call_part, verbose=False):
         print(f"Calling function: {function_call_part.name}({function_call_part.args})")
     else:
         print(f" - Calling function: {function_call_part.name}")
-    functions_enabled = []
-    for f in available_functions.function_declarations:
-        functions_enabled.append(f.name)
-    if function_call_part.name not in functions_enabled:
+    if function_call_part.name not in enabled_functions:
         return types.Content(
             role="tool",
             parts=[
                 types.Part.from_function_response(
                     name=function_call_part.name,
-                    response={
-                        "error": f"Unknown function: {function_call_part.name}{functions_enabled}"
-                    },
+                    response={"error": f"Unknown function: {function_call_part.name}"},
                 )
             ],
         )
     command = {"working_directory": WORK_DIR}
-    if function_call_part.name:
-        command.update({"file_path": f"{function_call_part.name}.py"})
     if function_call_part.args:
-        command.update({"args": function_call_part.args})
+        command.update(function_call_part.args)
 
-    result = run_python_file(**command)
+    result = enabled_functions[function_call_part.name](**command)
     return types.Content(
         role="tool",
         parts=[
