@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 
-from config import AI_MODEL, SYSTEM_PROMPT
+from config import AI_MODEL, MAX_ITERATIONS, SYSTEM_PROMPT
 from functions.call_function import call_function, available_functions
 
 if not load_dotenv():
@@ -31,7 +31,32 @@ def main():
     messages = [
         types.Content(role="user", parts=[types.Part(text=args.user_prompt)]),
     ]
-    generate_content(client, messages, args.verbose)
+    # i = 0
+    # try:
+    #     while i < 20:
+    #         response = generate_content(client, messages, args.verbose)
+    #         if response:
+    #             print(response)
+    #             break
+    #         i += 1
+    # except Exception as e:
+    iters = 0
+    while True:
+        iters += 1
+        if iters > MAX_ITERATIONS:
+            print(f"Maximum iterations ({MAX_ITERATIONS}) reached.")
+            sys.exit(1)
+
+        try:
+            final_response = generate_content(client, messages, args.verbose)
+            if final_response:
+                print("Final response:")
+                print(final_response)
+                break
+        except Exception as e:
+            print(
+                f"Error in generate_content: {e}"
+            )  #     return f"Error: While in loop: {e}"
 
 
 def generate_content(client, messages, verbose):
@@ -42,6 +67,12 @@ def generate_content(client, messages, verbose):
             tools=[available_functions], system_instruction=SYSTEM_PROMPT
         ),
     )
+    if not response.candidates:
+        return "Error: no response candidates found"
+    for x in response.candidates:
+        # messages.append(types.Content(role="tool",parts=[types.Part(text=x.content)]))
+        messages.append(x.content)
+
     if verbose:
         print(f"User prompt:\n{args.user_prompt}")
         print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
@@ -57,7 +88,9 @@ def generate_content(client, messages, verbose):
             print(f"-> {function_call_result.parts[0].function_response.response}")
         function_responses.append(function_call_result.parts[0])
     if not function_responses:
-        raise Exception("no response generated")
+        raise Exception("no function responses generated, exiting.")
+
+    messages.append(types.Content(role="tool", parts=function_responses))
 
 
 if __name__ == "__main__":
